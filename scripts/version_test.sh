@@ -7,7 +7,8 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=./install.sh
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=install.sh
 source "${here}/install.sh"
 
 failures=0
