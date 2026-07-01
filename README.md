@@ -15,7 +15,7 @@ Windows (amd64 / arm64).
 ## Quick start
 
 ```yaml
-- uses: nao1215/setup-atago@v1
+- uses: nao1215/setup-atago@v0
 - run: atago run ./spec
 ```
 
@@ -24,7 +24,7 @@ That's it — `atago` is now on `PATH`.
 ## Pin a version
 
 ```yaml
-- uses: nao1215/setup-atago@v1
+- uses: nao1215/setup-atago@v0
   with:
     version: v0.1.0 # default: latest
 ```
