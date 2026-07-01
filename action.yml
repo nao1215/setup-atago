@@ -1,0 +1,61 @@
+name: "Setup atago"
+description: "Install the atago CLI by downloading a prebuilt release binary (Linux, macOS, Windows / amd64, arm64)."
+author: "CHIKAMATSU Naohiro"
+
+branding:
+  icon: "download"
+  color: "blue"
+
+inputs:
+  version:
+    description: 'Version of atago to install (e.g. "v0.1.0" or "0.1.0"). Use "latest" to install the most recent release.'
+    required: false
+    default: "latest"
+  github-token:
+    description: "GitHub token used for API requests and downloads to avoid rate limiting."
+    required: false
+    default: ${{ github.token }}
+  install-dir:
+    description: "Directory to install the atago binary into. Defaults to $HOME/.atago/bin."
+    required: false
+    default: ""
+  verify-checksum:
+    description: 'Verify the downloaded archive against checksums.txt (SHA-256). Set to "false" to skip.'
+    required: false
+    default: "true"
+  verify-attestation:
+    description: 'Verify the archive build provenance with "gh attestation verify". Requires the gh CLI. Opt-in.'
+    required: false
+    default: "false"
+  add-to-path:
+    description: 'Add the install directory to PATH for subsequent steps. Set to "false" to only expose the outputs.'
+    required: false
+    default: "true"
+
+outputs:
+  version:
+    description: "The resolved version of atago that was installed (e.g. v0.1.0)."
+    value: ${{ steps.install.outputs.version }}
+  bin-path:
+    description: "Absolute path to the installed atago binary."
+    value: ${{ steps.install.outputs.bin-path }}
+  install-dir:
+    description: "Directory the atago binary was installed into (added to PATH)."
+    value: ${{ steps.install.outputs.install-dir }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: install
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_INSTALL_DIR: ${{ inputs.install-dir }}
+        INPUT_VERIFY_CHECKSUM: ${{ inputs.verify-checksum }}
+        INPUT_VERIFY_ATTESTATION: ${{ inputs.verify-attestation }}
+        INPUT_ADD_TO_PATH: ${{ inputs.add-to-path }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        RUNNER_OS: ${{ runner.os }}
+        RUNNER_ARCH: ${{ runner.arch }}
+      run: bash "${GITHUB_ACTION_PATH}/scripts/install.sh"

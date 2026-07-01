@@ -1,0 +1,62 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Static checks on the install script — these always run.
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run ShellCheck
+        run: shellcheck scripts/install.sh
+
+  # Integration test that actually installs atago on every supported platform.
+  #
+  # This only passes once a real atago release (>= v0.1.0) exists. Until then it
+  # is expected to fail on the download step, so it is gated behind
+  # workflow_dispatch to avoid blocking PRs.
+  install:
+    name: Install (${{ matrix.os }})
+    if: github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup atago
+        id: setup
+        uses: ./
+        with:
+          version: latest
+
+      - name: Print resolved outputs
+        shell: bash
+        run: |
+          echo "version=${{ steps.setup.outputs.version }}"
+          echo "bin-path=${{ steps.setup.outputs.bin-path }}"
+          echo "install-dir=${{ steps.setup.outputs.install-dir }}"
+
+      - name: Verify atago is on PATH
+        shell: bash
+        run: |
+          command -v atago
+          atago version || atago --version || atago --help
