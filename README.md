@@ -29,6 +29,9 @@ That's it — `atago` is now on `PATH`.
     version: v0.1.0 # default: latest
 ```
 
+For reproducible CI, pin an exact version instead of `latest`, so a new atago
+release cannot change what your workflow installs.
+
 ## Inputs
 
 | Name                 | Default               | Description                                                      |
@@ -47,6 +50,22 @@ That's it — `atago` is now on `PATH`.
 | `version`     | Installed version (e.g. `v0.1.0`).                |
 | `bin-path`    | Absolute path to the `atago` binary.              |
 | `install-dir` | Directory the binary was installed into.          |
+
+## Verification behavior
+
+The action fails (rather than silently continuing) when a verification you
+enabled cannot be completed:
+
+- `verify-checksum: true` (default): the install fails if `checksums.txt` cannot
+  be downloaded, if the archive is missing from it, or if the SHA-256 does not
+  match. Set `verify-checksum: false` to skip the check entirely.
+- `verify-attestation: true`: the install fails if the `gh` CLI is unavailable,
+  if neither `GH_TOKEN` nor `GITHUB_TOKEN` is set, or if `gh attestation verify`
+  fails. It is opt-in and skipped by default.
+
+The action derives release asset names (`atago_<version>_<os>_<arch>.<ext>`)
+from atago's [goreleaser](https://goreleaser.com/) config. If atago's release
+naming changes, this action must be updated to match.
 
 ## License
 

@@ -20,9 +20,8 @@ readonly BINARY="atago"
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-log()  { printf '%s\n' "==> $*"; }
-warn() { printf '%s\n' "WARN: $*" >&2; }
-die()  { printf '%s\n' "ERROR: $*" >&2; exit 1; }
+log() { printf '%s\n' "==> $*"; }
+die() { printf '%s\n' "ERROR: $*" >&2; exit 1; }
 
 # Emit a GitHub Actions step output when running in Actions; harmless locally.
 set_output() {
@@ -32,14 +31,29 @@ set_output() {
   fi
 }
 
-# curl wrapper that adds the GitHub token when available.
-gh_curl() {
-  local auth=()
-  if [ -n "${INPUT_GITHUB_TOKEN:-}" ]; then
-    auth=(-H "Authorization: Bearer ${INPUT_GITHUB_TOKEN}")
+# Convert a path to the runner's native form before writing it to $GITHUB_PATH.
+# On Windows the script runs under Git Bash, so a POSIX path like /c/foo would
+# not resolve for a following PowerShell step; cygpath rewrites it to C:\foo.
+to_github_path() {
+  local dir="$1"
+  if [ "${OS:-}" = "windows" ] && command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$dir"
+  else
+    printf '%s' "$dir"
   fi
-  curl --fail --silent --show-error --location --retry 3 --retry-delay 2 \
-    -H "X-GitHub-Api-Version: 2022-11-28" "${auth[@]}" "$@"
+}
+
+# curl wrapper that adds the GitHub token when available. Branching avoids
+# expanding a possibly-empty array under `set -u` on older bash (macOS 3.2).
+gh_curl() {
+  if [ -n "${INPUT_GITHUB_TOKEN:-}" ]; then
+    curl --fail --silent --show-error --location --retry 3 --retry-delay 2 \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      -H "Authorization: Bearer ${INPUT_GITHUB_TOKEN}" "$@"
+  else
+    curl --fail --silent --show-error --location --retry 3 --retry-delay 2 \
+      -H "X-GitHub-Api-Version: 2022-11-28" "$@"
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -110,7 +124,7 @@ verify_checksum() {
   [ -n "$expected" ] || die "checksum for ${name} not found in checksums.txt"
 
   actual="$(sha256_of "$archive")" \
-    || { warn "no SHA-256 tool available; skipping checksum verification"; return 0; }
+    || die "no SHA-256 tool (sha256sum/shasum/certutil) available to verify ${name}"
 
   # Normalize to lowercase for comparison.
   expected="$(printf '%s' "$expected" | tr '[:upper:]' '[:lower:]')"
@@ -127,9 +141,10 @@ verify_checksum() {
 # ---------------------------------------------------------------------------
 verify_attestation() {
   local archive="$1"
-  if ! command -v gh >/dev/null 2>&1; then
-    warn "gh CLI not found; skipping attestation verification"
-    return 0
+  command -v gh >/dev/null 2>&1 \
+    || die "verify-attestation is enabled but the gh CLI is not available on this runner"
+  if [ -z "${GH_TOKEN:-}" ] && [ -z "${GITHUB_TOKEN:-}" ]; then
+    die "verify-attestation is enabled but neither GH_TOKEN nor GITHUB_TOKEN is set"
   fi
   log "Verifying build provenance with gh attestation verify..."
   gh attestation verify "$archive" --repo "${OWNER}/${REPO}" \
@@ -188,13 +203,11 @@ main() {
 
   if [ "${INPUT_VERIFY_CHECKSUM:-true}" = "true" ]; then
     local checksums_path="${workdir}/checksums.txt"
-    if gh_curl -o "$checksums_path" "${base_url}/checksums.txt"; then
-      verify_checksum "$archive_path" "$checksums_path" "$archive_name"
-    else
-      warn "checksums.txt not found for ${TAG}; skipping checksum verification"
-    fi
+    gh_curl -o "$checksums_path" "${base_url}/checksums.txt" \
+      || die "verify-checksum is enabled but checksums.txt could not be downloaded for ${TAG}"
+    verify_checksum "$archive_path" "$checksums_path" "$archive_name"
   else
-    log "Checksum verification disabled by input"
+    log "Checksum verification disabled by input (verify-checksum: false)"
   fi
 
   if [ "${INPUT_VERIFY_ATTESTATION:-false}" = "true" ]; then
@@ -220,9 +233,10 @@ main() {
   cp "$src_bin" "$dest_bin"
   chmod +x "$dest_bin" 2>/dev/null || true
 
-  # Add to PATH for subsequent steps.
+  # Add to PATH for subsequent steps, in the runner's native path format so it
+  # resolves in both bash and PowerShell steps.
   if [ "${INPUT_ADD_TO_PATH:-true}" = "true" ] && [ -n "${GITHUB_PATH:-}" ]; then
-    printf '%s\n' "$install_dir" >>"$GITHUB_PATH"
+    printf '%s\n' "$(to_github_path "$install_dir")" >>"$GITHUB_PATH"
   fi
 
   log "Installed ${bin_name} -> ${dest_bin}"
@@ -232,4 +246,7 @@ main() {
   set_output "install-dir" "$install_dir"
 }
 
-main "$@"
+# Only run when executed directly, so tests can source the functions above.
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+  main "$@"
+fi
