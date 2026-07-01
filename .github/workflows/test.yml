@@ -22,7 +22,8 @@ jobs:
           persist-credentials: false
 
       - name: Run ShellCheck
-        run: shellcheck scripts/install.sh scripts/version_test.sh
+        # -x lets ShellCheck follow the sourced install.sh from version_test.sh.
+        run: shellcheck -x scripts/install.sh scripts/version_test.sh
 
       - name: Run actionlint
         uses: raven-actions/actionlint@v2
