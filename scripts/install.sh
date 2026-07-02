@@ -192,9 +192,12 @@ main() {
 
   log "Installing ${BINARY} ${TAG} (${OS}/${ARCH})"
 
-  local workdir
+  # NOT `local`: the EXIT trap fires after main() returns, when a local would
+  # already be out of scope — under `set -u` that made the trap itself fail,
+  # turning every successful install into a nonzero exit. ${workdir:-} keeps
+  # the trap safe even if mktemp itself failed.
   workdir="$(mktemp -d)"
-  trap 'rm -rf "$workdir"' EXIT
+  trap 'rm -rf "${workdir:-}"' EXIT
 
   local archive_path="${workdir}/${archive_name}"
   log "Downloading ${base_url}/${archive_name}"
