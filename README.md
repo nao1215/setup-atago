@@ -6,12 +6,6 @@ It downloads a prebuilt release binary instead of building from source, so your
 workflows stay fast — no Go setup, no `go build`. Works on Linux, macOS, and
 Windows (amd64 / arm64).
 
-> [!WARNING]
-> atago has not been released yet, so this action does not work at the moment —
-> there is no binary to download. It downloads from atago's GitHub Releases, and
-> the first release (`v0.1.0`) is not published. This action becomes usable once
-> that release exists.
-
 ## Quick start
 
 ```yaml
