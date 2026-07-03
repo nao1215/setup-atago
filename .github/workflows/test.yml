@@ -32,14 +32,8 @@ jobs:
         run: bash scripts/version_test.sh
 
   # Integration test that actually installs atago on every supported platform.
-  #
-  # atago has no published release yet, so this would fail on the download step.
-  # It is gated behind workflow_dispatch to avoid blocking PRs. Once the first
-  # release (v0.1.0) exists, remove the `if` below to run it on push/PR.
-  # TODO(v0.1.0): enable on push/pull_request after the first atago release.
   install:
     name: Install (${{ matrix.os }})
-    if: github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
