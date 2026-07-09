@@ -23,13 +23,16 @@ jobs:
 
       - name: Run ShellCheck
         # -x lets ShellCheck follow the sourced install.sh from version_test.sh.
-        run: shellcheck -x scripts/install.sh scripts/version_test.sh
+        run: shellcheck -x scripts/install.sh scripts/version_test.sh scripts/release_meta.sh scripts/release_meta_test.sh
 
       - name: Run actionlint
         uses: raven-actions/actionlint@v2
 
       - name: Test version normalization
         run: bash scripts/version_test.sh
+
+      - name: Test release tag normalization
+        run: bash scripts/release_meta_test.sh
 
   # Integration test that actually installs atago on every supported platform.
   install:

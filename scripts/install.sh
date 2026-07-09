@@ -56,6 +56,21 @@ gh_curl() {
   fi
 }
 
+extract_tag_name() {
+  local body="$1" after
+  case "$body" in
+    *'"tag_name"'*)
+      after="${body#*\"tag_name\"}"
+      after="${after#*:}"
+      after="${after#*\"}"
+      printf '%s' "${after%%\"*}"
+      ;;
+    *)
+      printf ''
+      ;;
+  esac
+}
+
 # ---------------------------------------------------------------------------
 # Resolve OS / architecture into goreleaser's naming.
 # ---------------------------------------------------------------------------
@@ -88,7 +103,7 @@ resolve_version() {
     body="$(gh_curl "https://api.github.com/repos/${OWNER}/${REPO}/releases/latest")" \
       || die "failed to query the latest release from the GitHub API"
     # Extract tag_name without depending on jq.
-    tag="$(printf '%s' "$body" | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')"
+    tag="$(extract_tag_name "$body")"
     [ -n "$tag" ] || die "could not determine the latest release tag (has atago been released yet?)"
     requested="$tag"
   fi

@@ -1,5 +1,8 @@
 # setup-atago
 
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-setup--atago-blue?logo=github)](https://github.com/marketplace/actions/setup-atago)
+[![Test](https://github.com/nao1215/setup-atago/actions/workflows/test.yml/badge.svg)](https://github.com/nao1215/setup-atago/actions/workflows/test.yml)
+
 GitHub Action to install the [atago](https://github.com/nao1215/atago) CLI.
 
 It downloads a prebuilt release binary instead of building from source, so your
@@ -60,6 +63,17 @@ enabled cannot be completed:
 The action derives release asset names (`atago_<version>_<os>_<arch>.<ext>`)
 from atago's [goreleaser](https://goreleaser.com/) config. If atago's release
 naming changes, this action must be updated to match.
+
+## Maintainer release flow
+
+When you want to cut a new Marketplace release:
+
+1. Run the `PrepareRelease` workflow from the Actions tab with `vX.Y.Z` (or `X.Y.Z`).
+1. Open the draft GitHub release it creates, tick `Publish this Action to the GitHub Marketplace`, then publish it.
+1. After publish, `SyncReleaseTags` automatically moves the floating `vX` and `vX.Y` tags (for example `v0` and `v0.1`) to that release.
+
+That keeps the Marketplace listing current while preserving the immutable full
+release tag (`v0.1.1`, `v0.1.2`, ...).
 
 ## License
 
