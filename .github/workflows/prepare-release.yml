@@ -28,7 +28,7 @@ jobs:
           INPUT_RELEASE_VERSION: ${{ inputs.version }}
         run: |
           source scripts/release_meta.sh
-          resolve_release_meta
+          resolve_release_meta "${INPUT_RELEASE_VERSION}"
           emit_release_meta
 
       - name: Ensure the release does not already exist

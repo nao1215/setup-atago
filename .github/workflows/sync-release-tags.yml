@@ -26,7 +26,7 @@ jobs:
           INPUT_RELEASE_VERSION: ${{ github.event.release.tag_name }}
         run: |
           source scripts/release_meta.sh
-          resolve_release_meta
+          resolve_release_meta "${INPUT_RELEASE_VERSION}"
           emit_release_meta
 
       - name: Move the floating major/minor tags to the published release
