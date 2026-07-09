@@ -41,9 +41,11 @@ check_invalid() {
 check "v0.1.1" "v0.1.1" "v0" "v0.1"
 check "0.2.3"  "v0.2.3" "v0" "v0.2"
 check " 1.4.0 " "v1.4.0" "v1" "v1.4"
+check " v2.3.4 " "v2.3.4" "v2" "v2.3"
 
 check_invalid "latest"
 check_invalid "v0.1"
+check_invalid "v1. 2.3"
 check_invalid "v0.1.0-rc1"
 
 if [ "$failures" -ne 0 ]; then

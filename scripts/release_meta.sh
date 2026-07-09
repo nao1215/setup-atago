@@ -14,8 +14,8 @@ set_output() {
 }
 
 resolve_release_meta() {
-  local requested="${1:-}"
-  requested="$(printf '%s' "$requested" | tr -d '[:space:]')"
+  local requested="${1:-${INPUT_RELEASE_VERSION:-}}"
+  requested="$(printf '%s' "$requested" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   if [ -z "$requested" ]; then
     printf '%s\n' "ERROR: release version is required (expected vX.Y.Z or X.Y.Z)" >&2
     return 1

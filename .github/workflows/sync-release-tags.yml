@@ -22,9 +22,11 @@ jobs:
       - name: Resolve release tags
         id: meta
         shell: bash
+        env:
+          INPUT_RELEASE_VERSION: ${{ github.event.release.tag_name }}
         run: |
           source scripts/release_meta.sh
-          resolve_release_meta "${{ github.event.release.tag_name }}"
+          resolve_release_meta
           emit_release_meta
 
       - name: Move the floating major/minor tags to the published release
