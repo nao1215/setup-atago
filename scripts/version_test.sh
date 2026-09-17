@@ -53,6 +53,12 @@ check_latest() {
 }
 
 check_tag_name '{"tag_name":"v0.1.1"}' "v0.1.1"
+# A release lists every asset, so the API response outgrows a pipe buffer. The
+# tag must come out without a pipe whose reader can stop early: v0.1.1 piped the
+# body into grep -m1, and pipefail turned the writer's SIGPIPE into a failed
+# install.
+# The API pretty-prints, so tag_name sits on an early line of its own.
+check_tag_name "$(printf '{\n  "tag_name": "v0.22.0",\n  "assets": ["%s"]\n}\n' "$(head -c 300000 /dev/zero | tr '\0' 'x')")" "v0.22.0"
 check_tag_name '{"name":"demo","tag_name":"v2.0.0","draft":false}' "v2.0.0"
 check "v0.1.0" "v0.1.0" "0.1.0"
 check "0.1.0"  "v0.1.0" "0.1.0"
