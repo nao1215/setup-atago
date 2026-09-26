@@ -215,13 +215,21 @@ main() {
   trap 'rm -rf "${workdir:-}"' EXIT
 
   local archive_path="${workdir}/${archive_name}"
+  local checksums_path="${workdir}/checksums.txt"
+  # checksums.txt is fetched while the archive downloads rather than after it:
+  # each download is a request and a redirect to the asset host, and waiting
+  # for one before starting the other added those round trips to every job.
+  local checksums_pid=""
+  if [ "${INPUT_VERIFY_CHECKSUM:-true}" = "true" ]; then
+    gh_curl -o "$checksums_path" "${base_url}/checksums.txt" &
+    checksums_pid=$!
+  fi
   log "Downloading ${base_url}/${archive_name}"
   gh_curl -o "$archive_path" "${base_url}/${archive_name}" \
     || die "failed to download ${archive_name}. Does release ${TAG} exist with this OS/arch?"
 
-  if [ "${INPUT_VERIFY_CHECKSUM:-true}" = "true" ]; then
-    local checksums_path="${workdir}/checksums.txt"
-    gh_curl -o "$checksums_path" "${base_url}/checksums.txt" \
+  if [ -n "$checksums_pid" ]; then
+    wait "$checksums_pid" \
       || die "verify-checksum is enabled but checksums.txt could not be downloaded for ${TAG}"
     verify_checksum "$archive_path" "$checksums_path" "$archive_name"
   else
