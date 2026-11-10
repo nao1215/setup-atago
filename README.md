@@ -2,6 +2,7 @@
 
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-setup--atago-blue?logo=github)](https://github.com/marketplace/actions/setup-atago)
 [![Test](https://github.com/nao1215/setup-atago/actions/workflows/test.yml/badge.svg)](https://github.com/nao1215/setup-atago/actions/workflows/test.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nao1215/setup-atago/badge)](https://scorecard.dev/viewer/?uri=github.com/nao1215/setup-atago)
 
 GitHub Action to install the [atago](https://github.com/nao1215/atago) CLI.
 
