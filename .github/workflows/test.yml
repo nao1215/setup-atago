@@ -26,7 +26,7 @@ jobs:
         run: shellcheck -x scripts/install.sh scripts/version_test.sh scripts/release_meta.sh scripts/release_meta_test.sh
 
       - name: Run actionlint
-        uses: raven-actions/actionlint@v2
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
 
       - name: Test version normalization
         run: bash scripts/version_test.sh
