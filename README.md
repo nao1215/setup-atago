@@ -33,6 +33,10 @@ That's it — `atago` is now on `PATH`.
 For reproducible CI, pin an exact version instead of `latest`, so a new atago
 release cannot change what your workflow installs.
 
+The version must be `latest`, `vX.Y.Z` or `X.Y.Z` (a pre-release suffix such as
+`-rc.1` is allowed). Anything else, such as `V0.1.0` or `0.1`, fails the step
+before any download.
+
 ## Inputs
 
 | Name                 | Default               | Description                                                      |

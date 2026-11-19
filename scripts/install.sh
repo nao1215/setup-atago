@@ -109,10 +109,18 @@ resolve_version() {
   fi
 
   # Normalize: TAG keeps the leading v, NUM_VERSION drops it.
-  case "$requested" in
-    v*) TAG="$requested"          ; NUM_VERSION="${requested#v}" ;;
-    *)  TAG="v${requested}"       ; NUM_VERSION="$requested"     ;;
-  esac
+  local num="${requested#v}"
+
+  # atago tags are vMAJOR.MINOR.PATCH with an optional pre-release or build
+  # suffix. Anything else (vv0.1.0, V0.1.0, Latest, 0.1) would otherwise be
+  # turned into a tag that only fails later as a 404 for an asset nobody asked
+  # for, and must not put arbitrary text into the download URL.
+  local semver='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'
+  [[ "$num" =~ $semver ]] \
+    || die "invalid version '${INPUT_VERSION:-}': expected \"latest\", vX.Y.Z or X.Y.Z (for example v0.1.0)"
+
+  TAG="v${num}"
+  NUM_VERSION="$num"
 }
 
 # ---------------------------------------------------------------------------
