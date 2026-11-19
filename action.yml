@@ -8,7 +8,7 @@ branding:
 
 inputs:
   version:
-    description: 'Version of atago to install (e.g. "v0.1.0" or "0.1.0"). Use "latest" to install the most recent release.'
+    description: 'Version of atago to install (e.g. "v0.26.3" or "0.26.3"). Use "latest" to install the most recent release.'
     required: false
     default: "latest"
   github-token:
@@ -34,7 +34,7 @@ inputs:
 
 outputs:
   version:
-    description: "The resolved version of atago that was installed (e.g. v0.1.0)."
+    description: "The resolved version of atago that was installed (e.g. v0.26.3)."
     value: ${{ steps.install.outputs.version }}
   bin-path:
     description: "Absolute path to the installed atago binary."
