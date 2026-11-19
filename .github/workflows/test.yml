@@ -73,3 +73,74 @@ jobs:
         run: |
           Get-Command atago
           atago --version
+
+  # A pinned version must install exactly that release, whether the input has
+  # the leading "v" or not, and a custom install-dir must be honoured.
+  install-pinned:
+    name: Install pinned ${{ matrix.version }} (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        version: [v0.26.1, 0.26.1]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup atago
+        id: setup
+        uses: ./
+        with:
+          version: ${{ matrix.version }}
+          install-dir: ${{ runner.temp }}/atago-pinned
+
+      - name: Verify the pinned release was installed
+        shell: bash
+        env:
+          OUT_VERSION: ${{ steps.setup.outputs.version }}
+          OUT_BIN_PATH: ${{ steps.setup.outputs.bin-path }}
+          OUT_INSTALL_DIR: ${{ steps.setup.outputs.install-dir }}
+          WANT_DIR: ${{ runner.temp }}/atago-pinned
+        run: |
+          test "${OUT_VERSION}" = "v0.26.1" || { echo "version output: ${OUT_VERSION}" >&2; exit 1; }
+          test "${OUT_INSTALL_DIR}" = "${WANT_DIR}" || { echo "install-dir output: ${OUT_INSTALL_DIR}" >&2; exit 1; }
+          test -x "${OUT_BIN_PATH}" || { echo "bin-path is not executable: ${OUT_BIN_PATH}" >&2; exit 1; }
+          got="$(atago version)"
+          echo "${got}"
+          test "${got}" = "atago v0.26.1"
+
+  # A release that does not exist must fail the step instead of installing
+  # something else or succeeding with nothing on PATH.
+  install-missing:
+    name: Install missing version (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup atago with a version that was never released
+        id: setup
+        continue-on-error: true
+        uses: ./
+        with:
+          version: v0.0.0
+
+      - name: Expect the setup step to have failed
+        shell: bash
+        env:
+          OUTCOME: ${{ steps.setup.outcome }}
+        run: |
+          test "${OUTCOME}" = "failure" || { echo "setup outcome: ${OUTCOME}" >&2; exit 1; }
+          if command -v atago >/dev/null 2>&1; then
+            echo "atago is on PATH after a failed install: $(command -v atago)" >&2
+            exit 1
+          fi
