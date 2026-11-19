@@ -1,11 +1,13 @@
-# Version updates arrive once a week, one pull request for all GitHub Actions.
-# Security updates are switched on in the repository settings, not here.
+# Version updates arrive once a month, one pull request for all GitHub Actions.
+# The group applies to version updates only. Security updates are switched on
+# in the repository settings, not here; where they are on, Dependabot opens
+# them as advisories appear, outside this schedule and this group.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       github-actions:
         applies-to: version-updates
