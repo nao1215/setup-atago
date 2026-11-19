@@ -73,6 +73,32 @@ check_latest_fails() {
   fi
 }
 
+# check_rejected expects resolve_version to stop with an "invalid version"
+# error before any download, instead of turning the input into a tag such as
+# vvX.Y.Z that only fails later as a 404 naming an asset nobody asked for.
+check_rejected() {
+  local input="$1" out status
+  INPUT_VERSION="$input"
+  gh_curl() { printf 'gh_curl must not be called for %s\n' "$INPUT_VERSION" >&2; return 1; }
+  set +e
+  out="$(resolve_version 2>&1)"
+  status=$?
+  set -e
+  case "$status:$out" in
+    0:*)
+      printf 'FAIL: %-8q was accepted (TAG would be built from it)\n' "$input"
+      failures=$((failures + 1))
+      ;;
+    *'invalid version'*)
+      printf 'ok:   %-8q rejected\n' "$input"
+      ;;
+    *)
+      printf 'FAIL: %-8q failed without naming the invalid version: %s\n' "$input" "$out"
+      failures=$((failures + 1))
+      ;;
+  esac
+}
+
 check_tag_name '{"tag_name":"v0.1.1"}' "v0.1.1"
 # A release lists every asset, so the API response outgrows a pipe buffer. The
 # tag must come out without a pipe whose reader can stop early: v0.1.1 piped the
@@ -93,6 +119,14 @@ check_latest "latest"
 check_latest ""   # the input left empty means latest
 check_latest "  " # whitespace only means latest too
 check_latest_fails
+check_rejected "vv0.1.0"     # doubled prefix
+check_rejected "V0.1.0"      # tags are lower-case v
+check_rejected "Latest"      # only the exact word latest resolves the newest release
+check_rejected "v"           # prefix without a version
+check_rejected "0.1"         # missing patch component
+check_rejected "0.1.0.0"     # extra component
+check_rejected "v0.1.0 beta" # inner whitespace
+check_rejected "0.1.0/../x"  # path segments in the download URL
 
 if [ "$failures" -ne 0 ]; then
   printf '%d test(s) failed\n' "$failures" >&2
