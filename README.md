@@ -79,6 +79,14 @@ When you want to cut a new Marketplace release:
 That keeps the Marketplace listing current while preserving the immutable full
 release tag (`v0.1.1`, `v0.1.2`, ...).
 
+## Testing
+
+| Technique | Bug class caught here |
+|---|---|
+| [Version input boundaries](scripts/version_test.sh) | `latest`, empty, whitespace, `v`-less and pre-release inputs resolving to the wrong tag |
+| [Release tag normalization](scripts/release_meta_test.sh) | Floating `vX` / `vX.Y` tags computed from a malformed release tag |
+| [Real-runner installs](.github/workflows/test.yml) | Asset naming, extraction, checksum and `PATH` breakage on Linux, macOS and Windows (amd64 / arm64), pinned versions installing something else, and a missing release passing silently |
+
 ## License
 
 [MIT](./LICENSE) © CHIKAMATSU Naohiro
