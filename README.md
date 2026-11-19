@@ -27,7 +27,7 @@ That's it — `atago` is now on `PATH`.
 ```yaml
 - uses: nao1215/setup-atago@v0
   with:
-    version: v0.1.0 # default: latest
+    version: v0.26.3 # default: latest
 ```
 
 For reproducible CI, pin an exact version instead of `latest`, so a new atago
@@ -41,7 +41,7 @@ before any download.
 
 | Name                 | Default               | Description                                                      |
 | -------------------- | --------------------- | ---------------------------------------------------------------- |
-| `version`            | `latest`              | Release to install: `latest`, `v0.1.0`, or `0.1.0`.              |
+| `version`            | `latest`              | Release to install: `latest`, `v0.26.3`, or `0.26.3`.            |
 | `github-token`       | `${{ github.token }}` | Token for API requests / downloads (avoids rate limiting).       |
 | `install-dir`        | `$HOME/.atago/bin`    | Where to install the binary. Added to `PATH`.                    |
 | `verify-checksum`    | `true`                | Verify the archive against `checksums.txt` (SHA-256).            |
@@ -52,7 +52,7 @@ before any download.
 
 | Name          | Description                                       |
 | ------------- | ------------------------------------------------- |
-| `version`     | Installed version (e.g. `v0.1.0`).                |
+| `version`     | Installed version (e.g. `v0.26.3`).               |
 | `bin-path`    | Absolute path to the `atago` binary.              |
 | `install-dir` | Directory the binary was installed into.          |
 
